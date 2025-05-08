@@ -1,0 +1,47 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+rule_files:
+  - "rules/*.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter'
+    ec2_sd_configs:
+      - region: ap-southeast-1
+        port: 9100
+        filters:
+          - name: "tag:CreatedBy"
+            values: ["AJX-ENV-DEVTOOL"]
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+      - source_labels: [__meta_ec2_tag_Environment]
+        target_label: environment
+      - source_labels: [__meta_ec2_availability_zone]
+        target_label: zone
+      - source_labels: [__meta_ec2_instance_type]
+        target_label: instance_type
+
+  - job_name: 'cadvisor'
+    ec2_sd_configs:
+      - region: ap-southeast-1
+        port: 8080
+        filters:
+          - name: "tag:CreatedBy"
+            values: ["AJX-ENV-DEVTOOL"]
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+      - source_labels: [__meta_ec2_tag_Environment]
+        target_label: environment
