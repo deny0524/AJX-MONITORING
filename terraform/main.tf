@@ -112,33 +112,37 @@ resource "aws_instance" "monitoring_server" {
               curl -SL https://github.com/docker/compose/releases/download/v2.20.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
               chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
               
-              # Debug: Print GitHub token (first few characters)
+              # Debug: Print GitHub token information
               GITHUB_TOKEN="${local.github_token}"
-              echo "GitHub token length: ${length(local.github_token)}"
-              echo "GitHub token starts with: ${substr(local.github_token, 0, 5)}..."
-              
-              # Configure git to use the token for GitHub
-              echo "Configuring git for private repository access"
+              echo "GitHub token length: ${length(local.github_token) > 0 ? length(local.github_token) : 0}"
               if [ -n "$GITHUB_TOKEN" ]; then
-                echo "Using GitHub token for authentication"
-                git config --global credential.helper store
-                echo "https://$GITHUB_TOKEN:x-oauth-basic@github.com" > /root/.git-credentials
-                chmod 600 /root/.git-credentials
+                echo "GitHub token is set"
               else
                 echo "ERROR: GitHub token is empty"
               fi
               
-              # Clone the monitoring repository
-              echo "Cloning repository ${var.repo_url}"
-              if git clone ${var.repo_url} /opt/ajx-monitoring; then
-                echo "Repository cloned successfully"
+              # Try to clone with token in URL
+              echo "Attempting to clone repository with token in URL"
+              REPO_URL_WITH_TOKEN="https://$GITHUB_TOKEN@github.com/deny0524/AJX-MONITORING.git"
+              if git clone $REPO_URL_WITH_TOKEN /opt/ajx-monitoring; then
+                echo "Repository cloned successfully with token in URL"
               else
-                echo "Failed to clone repository, creating directory structure manually"
-                mkdir -p /opt/ajx-monitoring
+                echo "Failed to clone with token in URL, trying alternative method"
+                
+                # Try alternative authentication method
+                git config --global url."https://$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
+                
+                if git clone ${var.repo_url} /opt/ajx-monitoring; then
+                  echo "Repository cloned successfully with alternative method"
+                else
+                  echo "All clone attempts failed, creating directory structure manually"
+                  mkdir -p /opt/ajx-monitoring
+                fi
               fi
               
               # Create .env file
               echo "Creating environment file"
+              mkdir -p /opt/ajx-monitoring
               cat > /opt/ajx-monitoring/.env << 'ENVFILE'
               GF_SECURITY_ADMIN_USER=${var.grafana_admin_user}
               GF_SECURITY_ADMIN_PASSWORD=${var.grafana_admin_password}
@@ -271,7 +275,7 @@ resource "aws_instance" "monitoring_server" {
               
               # Clean up credentials after use
               echo "Cleaning up credentials"
-              rm -f /root/.git-credentials
+              git config --global --unset url."https://$GITHUB_TOKEN@github.com/".insteadOf
               
               echo "User data script completed at $(date)"
               EOF
