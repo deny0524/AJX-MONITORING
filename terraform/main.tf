@@ -97,27 +97,45 @@ resource "aws_instance" "monitoring_server" {
   user_data = <<-EOF
               #!/bin/bash
               exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-              echo "Starting user data script"
+              echo "Starting user data script at $(date)"
               
               # Update and install packages
+              echo "Updating packages..."
               apt-get update
-              apt-get install -y docker.io git curl
+              apt-get install -y docker.io git curl jq
               systemctl enable docker
               systemctl start docker
               
               # Install Docker Compose v2
+              echo "Installing Docker Compose..."
               mkdir -p /usr/local/lib/docker/cli-plugins
               curl -SL https://github.com/docker/compose/releases/download/v2.20.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
               chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
               
+              # Debug: Print GitHub token (first few characters)
+              GITHUB_TOKEN="${local.github_token}"
+              echo "GitHub token length: ${length(local.github_token)}"
+              echo "GitHub token starts with: ${substr(local.github_token, 0, 5)}..."
+              
               # Configure git to use the token for GitHub
               echo "Configuring git for private repository access"
-              git config --global credential.helper store
-              echo "https://${local.github_token}:x-oauth-basic@github.com" > /root/.git-credentials
+              if [ -n "$GITHUB_TOKEN" ]; then
+                echo "Using GitHub token for authentication"
+                git config --global credential.helper store
+                echo "https://$GITHUB_TOKEN:x-oauth-basic@github.com" > /root/.git-credentials
+                chmod 600 /root/.git-credentials
+              else
+                echo "ERROR: GitHub token is empty"
+              fi
               
               # Clone the monitoring repository
               echo "Cloning repository ${var.repo_url}"
-              git clone ${var.repo_url} /opt/ajx-monitoring
+              if git clone ${var.repo_url} /opt/ajx-monitoring; then
+                echo "Repository cloned successfully"
+              else
+                echo "Failed to clone repository, creating directory structure manually"
+                mkdir -p /opt/ajx-monitoring
+              fi
               
               # Create .env file
               echo "Creating environment file"
@@ -130,18 +148,118 @@ resource "aws_instance" "monitoring_server" {
               AWS_SECRET_ACCESS_KEY=${local.secret_key}
               ENVFILE
               
+              # Check if docker-compose.yml exists, if not create it
+              if [ ! -f "/opt/ajx-monitoring/docker-compose.yml" ]; then
+                echo "docker-compose.yml not found, creating default monitoring stack"
+                
+                # Create docker-compose.yml
+                cat > /opt/ajx-monitoring/docker-compose.yml << 'DOCKER_COMPOSE'
+              version: '3'
+              
+              services:
+                prometheus:
+                  image: prom/prometheus:latest
+                  container_name: prometheus
+                  ports:
+                    - "9090:9090"
+                  volumes:
+                    - ./prometheus:/etc/prometheus
+                    - prometheus_data:/prometheus
+                  command:
+                    - '--config.file=/etc/prometheus/prometheus.yml'
+                    - '--storage.tsdb.path=/prometheus'
+                    - '--web.console.libraries=/etc/prometheus/console_libraries'
+                    - '--web.console.templates=/etc/prometheus/consoles'
+                    - '--web.enable-lifecycle'
+                  restart: unless-stopped
+              
+                alertmanager:
+                  image: prom/alertmanager:latest
+                  container_name: alertmanager
+                  ports:
+                    - "9093:9093"
+                  volumes:
+                    - ./alertmanager:/etc/alertmanager
+                  command:
+                    - '--config.file=/etc/alertmanager/alertmanager.yml'
+                    - '--storage.path=/alertmanager'
+                  restart: unless-stopped
+              
+                grafana:
+                  image: grafana/grafana:latest
+                  container_name: grafana
+                  ports:
+                    - "3000:3000"
+                  environment:
+                    - GF_SECURITY_ADMIN_USER=${var.grafana_admin_user}
+                    - GF_SECURITY_ADMIN_PASSWORD=${var.grafana_admin_password}
+                    - GF_USERS_ALLOW_SIGN_UP=false
+                  volumes:
+                    - grafana_data:/var/lib/grafana
+                  restart: unless-stopped
+              
+              volumes:
+                prometheus_data:
+                grafana_data:
+              DOCKER_COMPOSE
+              
+                # Create prometheus config directory and config file
+                mkdir -p /opt/ajx-monitoring/prometheus
+                cat > /opt/ajx-monitoring/prometheus/prometheus.yml << 'PROMETHEUS_CONFIG'
+              global:
+                scrape_interval: 15s
+                evaluation_interval: 15s
+              
+              alerting:
+                alertmanagers:
+                  - static_configs:
+                      - targets:
+                          - alertmanager:9093
+              
+              rule_files:
+                - "rules/*.yml"
+              
+              scrape_configs:
+                - job_name: 'prometheus'
+                  static_configs:
+                    - targets: ['localhost:9090']
+              
+                - job_name: 'node'
+                  static_configs:
+                    - targets: ['localhost:9100']
+              PROMETHEUS_CONFIG
+              
+                # Create alertmanager config directory and config file
+                mkdir -p /opt/ajx-monitoring/alertmanager
+                cat > /opt/ajx-monitoring/alertmanager/alertmanager.yml << 'ALERTMANAGER_CONFIG'
+              global:
+                resolve_timeout: 5m
+              
+              route:
+                group_by: ['alertname']
+                group_wait: 30s
+                group_interval: 5m
+                repeat_interval: 1h
+                receiver: 'web.hook'
+              
+              receivers:
+                - name: 'web.hook'
+                  webhook_configs:
+                    - url: 'http://127.0.0.1:5001/'
+              
+              inhibit_rules:
+                - source_match:
+                    severity: 'critical'
+                  target_match:
+                    severity: 'warning'
+                  equal: ['alertname', 'dev', 'instance']
+              ALERTMANAGER_CONFIG
+              fi
+              
               # Start the monitoring stack
               echo "Starting monitoring stack"
               cd /opt/ajx-monitoring
-              
-              # Check if docker-compose.yml exists
-              if [ -f "docker-compose.yml" ]; then
-                echo "Found docker-compose.yml, starting services"
-                docker compose up -d || docker-compose up -d
-              else
-                echo "ERROR: docker-compose.yml not found in repository"
-                ls -la
-              fi
+              docker compose up -d || docker-compose up -d
               
               # Wait for services to start
               echo "Waiting for services to start..."
@@ -155,7 +273,7 @@ resource "aws_instance" "monitoring_server" {
               echo "Cleaning up credentials"
               rm -f /root/.git-credentials
               
-              echo "User data script completed"
+              echo "User data script completed at $(date)"
               EOF
 
   tags = {
