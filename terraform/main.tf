@@ -112,38 +112,15 @@ resource "aws_instance" "monitoring_server" {
               curl -SL https://github.com/docker/compose/releases/download/v2.20.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
               chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
               
-              # Debug: Print GitHub token information
-              GITHUB_TOKEN="${local.github_token}"
-              echo "GitHub token length: ${length(local.github_token) > 0 ? length(local.github_token) : 0}"
-              if [ -n "$GITHUB_TOKEN" ]; then
-                echo "GitHub token is set"
-              else
-                echo "ERROR: GitHub token is empty"
-              fi
-              
-              # Try to clone with token in URL
-              echo "Attempting to clone repository with token in URL"
-              REPO_URL_WITH_TOKEN="https://$GITHUB_TOKEN@github.com/deny0524/AJX-MONITORING.git"
-              if git clone $REPO_URL_WITH_TOKEN /opt/ajx-monitoring; then
-                echo "Repository cloned successfully with token in URL"
-              else
-                echo "Failed to clone with token in URL, trying alternative method"
-                
-                # Try alternative authentication method
-                git config --global url."https://$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
-                
-                if git clone ${var.repo_url} /opt/ajx-monitoring; then
-                  echo "Repository cloned successfully with alternative method"
-                else
-                  echo "All clone attempts failed, creating directory structure manually"
-                  mkdir -p /opt/ajx-monitoring
-                fi
-              fi
+              # Create monitoring directory
+              echo "Creating monitoring directory structure"
+              mkdir -p /opt/ajx-monitoring
+              mkdir -p /opt/ajx-monitoring/prometheus
+              mkdir -p /opt/ajx-monitoring/alertmanager
               
               # Create .env file
               echo "Creating environment file"
-              mkdir -p /opt/ajx-monitoring
-              cat > /opt/ajx-monitoring/.env << 'ENVFILE'
+              cat > /opt/ajx-monitoring/.env << ENVFILE
               GF_SECURITY_ADMIN_USER=${var.grafana_admin_user}
               GF_SECURITY_ADMIN_PASSWORD=${var.grafana_admin_password}
               GF_USERS_ALLOW_SIGN_UP=false
@@ -152,12 +129,9 @@ resource "aws_instance" "monitoring_server" {
               AWS_SECRET_ACCESS_KEY=${local.secret_key}
               ENVFILE
               
-              # Check if docker-compose.yml exists, if not create it
-              if [ ! -f "/opt/ajx-monitoring/docker-compose.yml" ]; then
-                echo "docker-compose.yml not found, creating default monitoring stack"
-                
-                # Create docker-compose.yml
-                cat > /opt/ajx-monitoring/docker-compose.yml << 'DOCKER_COMPOSE'
+              # Create docker-compose.yml
+              echo "Creating docker-compose.yml"
+              cat > /opt/ajx-monitoring/docker-compose.yml << 'DOCKER_COMPOSE'
               version: '3'
               
               services:
@@ -195,8 +169,8 @@ resource "aws_instance" "monitoring_server" {
                   ports:
                     - "3000:3000"
                   environment:
-                    - GF_SECURITY_ADMIN_USER=${var.grafana_admin_user}
-                    - GF_SECURITY_ADMIN_PASSWORD=${var.grafana_admin_password}
+                    - GF_SECURITY_ADMIN_USER=admin
+                    - GF_SECURITY_ADMIN_PASSWORD=admin
                     - GF_USERS_ALLOW_SIGN_UP=false
                   volumes:
                     - grafana_data:/var/lib/grafana
@@ -207,9 +181,9 @@ resource "aws_instance" "monitoring_server" {
                 grafana_data:
               DOCKER_COMPOSE
               
-                # Create prometheus config directory and config file
-                mkdir -p /opt/ajx-monitoring/prometheus
-                cat > /opt/ajx-monitoring/prometheus/prometheus.yml << 'PROMETHEUS_CONFIG'
+              # Create prometheus.yml
+              echo "Creating prometheus.yml"
+              cat > /opt/ajx-monitoring/prometheus/prometheus.yml << 'PROMETHEUS_CONFIG'
               global:
                 scrape_interval: 15s
                 evaluation_interval: 15s
@@ -233,9 +207,9 @@ resource "aws_instance" "monitoring_server" {
                     - targets: ['localhost:9100']
               PROMETHEUS_CONFIG
               
-                # Create alertmanager config directory and config file
-                mkdir -p /opt/ajx-monitoring/alertmanager
-                cat > /opt/ajx-monitoring/alertmanager/alertmanager.yml << 'ALERTMANAGER_CONFIG'
+              # Create alertmanager.yml
+              echo "Creating alertmanager.yml"
+              cat > /opt/ajx-monitoring/alertmanager/alertmanager.yml << 'ALERTMANAGER_CONFIG'
               global:
                 resolve_timeout: 5m
               
@@ -258,7 +232,6 @@ resource "aws_instance" "monitoring_server" {
                     severity: 'warning'
                   equal: ['alertname', 'dev', 'instance']
               ALERTMANAGER_CONFIG
-              fi
               
               # Start the monitoring stack
               echo "Starting monitoring stack"
@@ -272,10 +245,6 @@ resource "aws_instance" "monitoring_server" {
               # Check if services are running
               echo "Checking running containers:"
               docker ps
-              
-              # Clean up credentials after use
-              echo "Cleaning up credentials"
-              git config --global --unset url."https://$GITHUB_TOKEN@github.com/".insteadOf
               
               echo "User data script completed at $(date)"
               EOF
