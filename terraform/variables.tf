@@ -71,14 +71,14 @@ variable "aws_secret_key" {
   default     = ""
 }
 
-variable "secret_name" {
-  description = "Name of the AWS Secrets Manager secret containing AWS credentials"
+variable "aws_secret_arn" {
+  description = "ARN of the AWS Secrets Manager secret containing AWS credentials"
   type        = string
   default     = ""
 }
 
-variable "secret_arn" {
-  description = "ARN of the AWS Secrets Manager secret containing AWS credentials"
+variable "github_secret_arn" {
+  description = "ARN of the AWS Secrets Manager secret containing GitHub token"
   type        = string
   default     = ""
 }

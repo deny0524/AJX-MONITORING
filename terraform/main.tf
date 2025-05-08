@@ -113,7 +113,7 @@ resource "aws_instance" "monitoring_server" {
               # Configure git to use the token for GitHub
               echo "Configuring git for private repository access"
               git config --global credential.helper store
-              echo "https://${var.github_token}:x-oauth-basic@github.com" > /root/.git-credentials
+              echo "https://${local.github_token}:x-oauth-basic@github.com" > /root/.git-credentials
               
               # Clone the monitoring repository
               echo "Cloning repository ${var.repo_url}"
