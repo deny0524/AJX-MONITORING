@@ -96,15 +96,38 @@ resource "aws_instance" "monitoring_server" {
 
   user_data = <<-EOF
               #!/bin/bash
-              exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-              echo "Starting user data script at $(date)"
+              # Redirect output to both console and log file
+              exec > >(tee /var/log/user-data.log) 2>&1
+              echo "Starting monitoring stack setup at $(date)"
+              
+              # Check if the script has already run
+              if [ -f "/opt/ajx-monitoring/.setup_complete" ]; then
+                echo "Setup already completed. Exiting."
+                exit 0
+              fi
               
               # Update and install packages
               echo "Updating packages..."
               apt-get update
-              apt-get install -y docker.io git curl jq
+              apt-get install -y docker.io curl jq
+              
+              # Make sure Docker is running
+              echo "Ensuring Docker is running..."
               systemctl enable docker
               systemctl start docker
+              sleep 5
+              
+              # Verify Docker is running
+              if ! systemctl is-active --quiet docker; then
+                echo "ERROR: Docker is not running. Attempting to start..."
+                systemctl start docker
+                sleep 5
+                
+                if ! systemctl is-active --quiet docker; then
+                  echo "ERROR: Failed to start Docker. Exiting."
+                  exit 1
+                fi
+              fi
               
               # Install Docker Compose v2
               echo "Installing Docker Compose..."
@@ -113,13 +136,13 @@ resource "aws_instance" "monitoring_server" {
               chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
               
               # Create monitoring directory
-              echo "Creating monitoring directory structure"
+              echo "Creating monitoring directory structure..."
               mkdir -p /opt/ajx-monitoring
               mkdir -p /opt/ajx-monitoring/prometheus
               mkdir -p /opt/ajx-monitoring/alertmanager
               
               # Create .env file
-              echo "Creating environment file"
+              echo "Creating environment file..."
               cat > /opt/ajx-monitoring/.env << ENVFILE
               GF_SECURITY_ADMIN_USER=${var.grafana_admin_user}
               GF_SECURITY_ADMIN_PASSWORD=${var.grafana_admin_password}
@@ -130,7 +153,7 @@ resource "aws_instance" "monitoring_server" {
               ENVFILE
               
               # Create docker-compose.yml
-              echo "Creating docker-compose.yml"
+              echo "Creating docker-compose.yml..."
               cat > /opt/ajx-monitoring/docker-compose.yml << 'DOCKER_COMPOSE'
               version: '3'
               
@@ -182,7 +205,7 @@ resource "aws_instance" "monitoring_server" {
               DOCKER_COMPOSE
               
               # Create prometheus.yml
-              echo "Creating prometheus.yml"
+              echo "Creating prometheus.yml..."
               cat > /opt/ajx-monitoring/prometheus/prometheus.yml << 'PROMETHEUS_CONFIG'
               global:
                 scrape_interval: 15s
@@ -208,7 +231,7 @@ resource "aws_instance" "monitoring_server" {
               PROMETHEUS_CONFIG
               
               # Create alertmanager.yml
-              echo "Creating alertmanager.yml"
+              echo "Creating alertmanager.yml..."
               cat > /opt/ajx-monitoring/alertmanager/alertmanager.yml << 'ALERTMANAGER_CONFIG'
               global:
                 resolve_timeout: 5m
@@ -233,18 +256,35 @@ resource "aws_instance" "monitoring_server" {
                   equal: ['alertname', 'dev', 'instance']
               ALERTMANAGER_CONFIG
               
+              # Pull Docker images before starting
+              echo "Pulling Docker images..."
+              docker pull prom/prometheus:latest
+              docker pull prom/alertmanager:latest
+              docker pull grafana/grafana:latest
+              
               # Start the monitoring stack
-              echo "Starting monitoring stack"
+              echo "Starting monitoring stack..."
               cd /opt/ajx-monitoring
               docker compose up -d || docker-compose up -d
               
-              # Wait for services to start
-              echo "Waiting for services to start..."
-              sleep 30
+              # Check if containers are running
+              echo "Checking if containers are running..."
+              sleep 10
+              RUNNING_CONTAINERS=$(docker ps --format "{{.Names}}" | grep -E 'prometheus|alertmanager|grafana' | wc -l)
               
-              # Check if services are running
-              echo "Checking running containers:"
-              docker ps
+              if [ "$RUNNING_CONTAINERS" -eq 3 ]; then
+                echo "All containers are running successfully!"
+              else
+                echo "WARNING: Not all containers are running. Current status:"
+                docker ps
+                echo "Container logs:"
+                docker logs prometheus
+                docker logs alertmanager
+                docker logs grafana
+              fi
+              
+              # Mark setup as complete
+              touch /opt/ajx-monitoring/.setup_complete
               
               echo "User data script completed at $(date)"
               EOF
