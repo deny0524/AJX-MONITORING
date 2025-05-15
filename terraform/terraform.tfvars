@@ -1,6 +1,6 @@
 aws_region = "ap-southeast-1"
 ami_id = "ami-078c1149d8ad719a7"
-instance_type = "t3.medium"
+instance_type = "t2.micro"
 key_name = "ajx-monitoring-key"
 subnet_id = "subnet-00d5dbce88bd080ac"
 allowed_cidr_blocks = ["139.162.51.246/32"]
