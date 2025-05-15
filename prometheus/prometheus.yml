@@ -16,14 +16,20 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
+  # EC2 instances created by AJX-ENV-DEPTOOL with Node Exporter
   - job_name: 'node-exporter'
     ec2_sd_configs:
       - region: ap-southeast-1
         port: 9100
         filters:
           - name: "tag:CreatedBy"
-            values: ["AJX-ENV-DEVTOOL"]
+            values: ["AJX-ENV-DEPTOOL"]
+        refresh_interval: 30s
     relabel_configs:
+      # Use public IP instead of private IP for scraping
+      - source_labels: [__meta_ec2_public_ip]
+        target_label: __address__
+        replacement: '${1}:9100'
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
       - source_labels: [__meta_ec2_tag_Environment]
@@ -32,16 +38,47 @@ scrape_configs:
         target_label: zone
       - source_labels: [__meta_ec2_instance_type]
         target_label: instance_type
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: private_ip
 
+  # EC2 instances with cAdvisor for container metrics
   - job_name: 'cadvisor'
     ec2_sd_configs:
       - region: ap-southeast-1
-        port: 8080
+        port: 9080
         filters:
           - name: "tag:CreatedBy"
-            values: ["AJX-ENV-DEVTOOL"]
+            values: ["AJX-ENV-DEPTOOL"]
+        refresh_interval: 30s
     relabel_configs:
+      # Use public IP instead of private IP for scraping
+      - source_labels: [__meta_ec2_public_ip]
+        target_label: __address__
+        replacement: '${1}:9080'
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
       - source_labels: [__meta_ec2_tag_Environment]
         target_label: environment
+
+  # JMX Exporter for Java applications
+  - job_name: 'jmx-exporter'
+    ec2_sd_configs:
+      - region: ap-southeast-1
+        port: 9404
+        filters:
+          - name: "tag:CreatedBy"
+            values: ["AJX-ENV-DEPTOOL"]
+          - name: "tag:Service"
+            values: ["java-app"]
+        refresh_interval: 30s
+    relabel_configs:
+      # Use public IP instead of private IP for scraping
+      - source_labels: [__meta_ec2_public_ip]
+        target_label: __address__
+        replacement: '${1}:9404'
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+      - source_labels: [__meta_ec2_tag_Environment]
+        target_label: environment
+      - source_labels: [__meta_ec2_tag_Service]
+        target_label: service

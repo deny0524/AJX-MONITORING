@@ -40,7 +40,7 @@ resource "aws_security_group" "monitoring_sg" {
     from_port   = 9090
     to_port     = 9090
     protocol    = "tcp"
-    cidr_blocks = ["139.162.51.246/32", "0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]
     description = "Prometheus"
   }
 
@@ -48,7 +48,7 @@ resource "aws_security_group" "monitoring_sg" {
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
-    cidr_blocks = ["139.162.51.246/32", "0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]
     description = "Grafana"
   }
 
@@ -56,7 +56,7 @@ resource "aws_security_group" "monitoring_sg" {
     from_port   = 9093
     to_port     = 9093
     protocol    = "tcp"
-    cidr_blocks = ["139.162.51.246/32", "0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]
     description = "AlertManager"
   }
 
@@ -64,7 +64,7 @@ resource "aws_security_group" "monitoring_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["139.162.51.246/32"]
+    cidr_blocks = ["139.162.51.246/32", "47.129.135.170/32"]
     description = "SSH"
   }
 
@@ -77,7 +77,7 @@ resource "aws_security_group" "monitoring_sg" {
 
   tags = {
     Name      = "ajx-monitoring-sg"
-    CreatedBy = "AJX-ENV-DEVTOOL"
+    CreatedBy = "AJX-ENV-DEPTOOL"
   }
 }
 
@@ -173,7 +173,9 @@ resource "aws_instance" "monitoring_server" {
                     - '--web.console.templates=/etc/prometheus/consoles'
                     - '--web.enable-lifecycle'
                   restart: unless-stopped
-              
+                  env_file:
+                    - ./.env
+                
                 alertmanager:
                   image: prom/alertmanager:latest
                   container_name: alertmanager
@@ -228,6 +230,73 @@ resource "aws_instance" "monitoring_server" {
                 - job_name: 'node'
                   static_configs:
                     - targets: ['localhost:9100']
+                
+                # EC2 instances created by AJX-ENV-DEPTOOL with Node Exporter
+                - job_name: 'node-exporter'
+                  ec2_sd_configs:
+                    - region: ap-southeast-1
+                      port: 9100
+                      filters:
+                        - name: "tag:CreatedBy"
+                          values: ["AJX-ENV-DEPTOOL"]
+                      refresh_interval: 30s
+                  relabel_configs:
+                    # Use public IP instead of private IP for scraping
+                    - source_labels: [__meta_ec2_public_ip]
+                      target_label: __address__
+                      replacement: '${1}:9100'
+                    - source_labels: [__meta_ec2_tag_Name]
+                      target_label: instance
+                    - source_labels: [__meta_ec2_tag_Environment]
+                      target_label: environment
+                    - source_labels: [__meta_ec2_availability_zone]
+                      target_label: zone
+                    - source_labels: [__meta_ec2_instance_type]
+                      target_label: instance_type
+                    - source_labels: [__meta_ec2_private_ip]
+                      target_label: private_ip
+                
+                # EC2 instances with cAdvisor for container metrics
+                - job_name: 'cadvisor'
+                  ec2_sd_configs:
+                    - region: ap-southeast-1
+                      port: 9080
+                      filters:
+                        - name: "tag:CreatedBy"
+                          values: ["AJX-ENV-DEPTOOL"]
+                      refresh_interval: 30s
+                  relabel_configs:
+                    # Use public IP instead of private IP for scraping
+                    - source_labels: [__meta_ec2_public_ip]
+                      target_label: __address__
+                      replacement: '${1}:9080'
+                    - source_labels: [__meta_ec2_tag_Name]
+                      target_label: instance
+                    - source_labels: [__meta_ec2_tag_Environment]
+                      target_label: environment
+                
+                # JMX Exporter for Java applications
+                - job_name: 'jmx-exporter'
+                  ec2_sd_configs:
+                    - region: ap-southeast-1
+                      port: 9404
+                      filters:
+                        - name: "tag:CreatedBy"
+                          values: ["AJX-ENV-DEPTOOL"]
+                        - name: "tag:Service"
+                          values: ["java-app"]
+                      refresh_interval: 30s
+                  relabel_configs:
+                    # Use public IP instead of private IP for scraping
+                    - source_labels: [__meta_ec2_public_ip]
+                      target_label: __address__
+                      replacement: '${1}:9404'
+                    - source_labels: [__meta_ec2_tag_Name]
+                      target_label: instance
+                    - source_labels: [__meta_ec2_tag_Environment]
+                      target_label: environment
+                    - source_labels: [__meta_ec2_tag_Service]
+                      target_label: service
               PROMETHEUS_CONFIG
               
               # Create alertmanager.yml
@@ -291,6 +360,6 @@ resource "aws_instance" "monitoring_server" {
 
   tags = {
     Name      = "ajx-monitoring-server"
-    CreatedBy = "AJX-ENV-DEVTOOL"
+    CreatedBy = "AJX-ENV-DEPTOOL"
   }
 }
