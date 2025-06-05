@@ -1,0 +1,19 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the script
+COPY cloudflare-script.py .
+
+# Make the script executable
+RUN chmod +x cloudflare-script.py
+
+# Expose the metrics port
+EXPOSE 9199
+
+# Run the script
+CMD ["python", "cloudflare-script.py"]

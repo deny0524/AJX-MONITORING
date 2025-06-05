@@ -15,12 +15,20 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+      
+  - job_name: 'cloudflare'
+    scrape_interval: 5m
+    static_configs:
+      - targets: ['cloudflare-exporter:9199']
 
-  # EC2 instances created by AJX-ENV-DEPTOOL with Node Exporter
-  - job_name: 'node-exporter'
+  # EC2 instances created by AJX-ENV-DEPTOOL with Node Exporter (Default Account)
+  - job_name: 'node-exporter-default'
     ec2_sd_configs:
       - region: ap-southeast-1
         port: 9100
+        # Default account: 533267407355
+        access_key: "${AWS_ACCESS_KEY}"
+        secret_key: "${AWS_SECRET_KEY}"
         filters:
           - name: "tag:CreatedBy"
             values: ["AJX-ENV-DEPTOOL"]
@@ -40,12 +48,17 @@ scrape_configs:
         target_label: instance_type
       - source_labels: [__meta_ec2_private_ip]
         target_label: private_ip
-
-  # EC2 instances with cAdvisor for container metrics
-  - job_name: 'cadvisor'
+      # Add a common job label for all node exporters
+      - target_label: job
+        replacement: 'node-exporter'
+        
+  # EC2 instances created by AJX-ENV-DEPTOOL with Node Exporter (Secondary Account)
+  - job_name: 'node-exporter-secondary'
     ec2_sd_configs:
       - region: ap-southeast-1
-        port: 9080
+        port: 9100
+        # Secondary account: 925498464866
+        role_arn: "arn:aws:iam::533267407355:role/prometheus-cross-account-role"
         filters:
           - name: "tag:CreatedBy"
             values: ["AJX-ENV-DEPTOOL"]
@@ -54,31 +67,65 @@ scrape_configs:
       # Use public IP instead of private IP for scraping
       - source_labels: [__meta_ec2_public_ip]
         target_label: __address__
-        replacement: '${1}:9080'
+        replacement: '${1}:9100'
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
       - source_labels: [__meta_ec2_tag_Environment]
         target_label: environment
-
-  # JMX Exporter for Java applications
-  - job_name: 'jmx-exporter'
+      - source_labels: [__meta_ec2_availability_zone]
+        target_label: zone
+      - source_labels: [__meta_ec2_instance_type]
+        target_label: instance_type
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: private_ip
+      # Add a common job label for all node exporters
+      - target_label: job
+        replacement: 'node-exporter'
+        
+  # PostgreSQL Exporter for DB instances (Default Account)
+  - job_name: 'postgres-exporter-default'
     ec2_sd_configs:
       - region: ap-southeast-1
-        port: 9404
+        port: 9187
+        # Default account: 533267407355
+        access_key: "${AWS_ACCESS_KEY}"
+        secret_key: "${AWS_SECRET_KEY}"
         filters:
           - name: "tag:CreatedBy"
             values: ["AJX-ENV-DEPTOOL"]
-          - name: "tag:Service"
-            values: ["java-app"]
+          - name: "tag:Name"
+            values: ["*DB*", "*db*", "*Db*", "*dB*"]
         refresh_interval: 30s
     relabel_configs:
       # Use public IP instead of private IP for scraping
       - source_labels: [__meta_ec2_public_ip]
         target_label: __address__
-        replacement: '${1}:9404'
+        replacement: '${1}:9187'
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
       - source_labels: [__meta_ec2_tag_Environment]
         target_label: environment
-      - source_labels: [__meta_ec2_tag_Service]
-        target_label: service
+        
+  # PostgreSQL Exporter for DB instances (Secondary Account)
+  - job_name: 'postgres-exporter-secondary'
+    ec2_sd_configs:
+      - region: ap-southeast-1
+        port: 9187
+        # Secondary account: 925498464866
+        role_arn: "arn:aws:iam::533267407355:role/prometheus-cross-account-role"
+        filters:
+          - name: "tag:CreatedBy"
+            values: ["AJX-ENV-DEPTOOL"]
+          - name: "tag:Name"
+            values: ["*DB*", "*db*", "*Db*", "*dB*"]
+        refresh_interval: 30s
+    relabel_configs:
+      # Use public IP instead of private IP for scraping
+      - source_labels: [__meta_ec2_public_ip]
+        target_label: __address__
+        replacement: '${1}:9187'
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+      - source_labels: [__meta_ec2_tag_Environment]
+        target_label: environment
+

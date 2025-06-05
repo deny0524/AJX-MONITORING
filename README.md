@@ -132,3 +132,199 @@ docker-compose logs prometheus
 docker-compose logs grafana
 docker-compose logs alertmanager
 ```
+
+## Cloudflare Monitoring Setup
+
+This setup allows you to monitor your Cloudflare domain metrics in Grafana.
+
+### Prerequisites
+
+1. A Cloudflare account with at least one domain
+2. API token with Analytics permissions
+
+### Setup Instructions
+
+1. Create an API token in your Cloudflare account:
+   - Go to Cloudflare dashboard > My Profile > API Tokens
+   - Create a new token with "Analytics Read" permissions
+   - Copy the generated token
+
+2. Update the `.env.cloudflare` file with your API token and domain:
+   ```
+   CF_API_TOKEN=your_cloudflare_api_token_here
+   CF_DOMAINS=your-domain.com
+   ```
+
+3. Install the Cloudflare app in Grafana:
+   - After starting the Grafana container, log in to the Grafana UI
+   - Go to Configuration > Plugins
+   - Search for "Cloudflare"
+   - Install the Cloudflare app plugin
+
+4. Restart the Grafana container:
+   ```
+   docker-compose restart grafana
+   ```
+
+5. Access the Cloudflare dashboard:
+   - Go to Dashboards > Cloudflare > Cloudflare Domain Monitoring
+
+### Troubleshooting
+
+- If metrics don't appear, verify your API token has the correct permissions
+- Check Grafana logs for any connection errors to the Cloudflare API
+- Ensure your domain is correctly configured in the datasource
+## Cloudflare Monitoring Setup
+
+This setup allows you to monitor your Cloudflare domain metrics in Grafana using the Cloudflare exporter for Prometheus.
+
+### Prerequisites
+
+1. A Cloudflare account with at least one domain
+2. API token with Analytics permissions
+
+### Setup Instructions
+
+1. Create an API token in your Cloudflare account:
+   - Go to Cloudflare dashboard > My Profile > API Tokens
+   - Create a new token with "Analytics Read" permissions
+   - Copy the generated token
+
+2. Update the `.env.cloudflare` file with your API token and domain:
+   ```
+   CF_API_TOKEN=your_cloudflare_api_token_here
+   CF_DOMAINS=your-domain.com
+   ```
+
+3. Start the monitoring stack:
+   ```
+   docker-compose up -d
+   ```
+
+4. Access the Cloudflare dashboard:
+   - Go to Grafana UI (http://localhost:3000)
+   - Navigate to Dashboards > Cloudflare > Cloudflare Domain Monitoring
+
+### Troubleshooting
+
+- If metrics don't appear, verify your API token has the correct permissions
+- Check the logs of the cloudflare-exporter container:
+  ```
+  docker-compose logs cloudflare-exporter
+  ```
+- Ensure your domain is correctly configured in the .env.cloudflare file
+## Troubleshooting Cloudflare Exporter
+
+If you encounter the error "lookup cloudflare-exporter on 127.0.0.11:53: server misbehaving", try these steps:
+
+1. Restart the containers:
+   ```
+   docker-compose down
+   docker-compose up -d
+   ```
+
+2. Check if the cloudflare-exporter container is running:
+   ```
+   docker-compose ps
+   ```
+
+3. Verify the exporter is accessible:
+   ```
+   chmod +x ./cloudflare-exporter-test.sh
+   ./cloudflare-exporter-test.sh
+   ```
+
+4. If the container is failing, check the logs:
+   ```
+   docker-compose logs cloudflare-exporter
+   ```
+
+5. Try using the override configuration:
+   ```
+   docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d
+   ```
+
+6. Manually test the Cloudflare API with your token:
+   ```
+   curl -X GET "https://api.cloudflare.com/client/v4/zones" \
+     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "Content-Type: application/json"
+   ```
+## Alternative Cloudflare Monitoring Setup
+
+If you encounter issues with the Cloudflare exporter, try this alternative setup:
+
+1. Use the systemli/prometheus-cloudflare-exporter image:
+   ```
+   docker-compose -f docker-compose.yml -f docker-compose.override.yml down
+   docker-compose up -d
+   ```
+
+2. Or use the custom Python-based exporter:
+   ```
+   docker-compose -f docker-compose.yml -f docker-compose.cloudflare.yml up -d
+   ```
+
+3. Verify the exporter is working:
+   ```
+   curl http://localhost:9199/metrics
+   ```
+
+4. If you still have issues, try running the Python script directly:
+   ```
+   python cloudflare-script.py
+   ```
+
+The Python script is a simple alternative that doesn't rely on specific Docker images and should work with your Cloudflare API token.
+## AWS Credentials Setup for Prometheus
+
+To enable Prometheus to discover EC2 instances in your AWS account, you need to set up AWS credentials:
+
+1. Create an IAM user with the following permissions:
+   - `ec2:DescribeInstances`
+   - `ec2:DescribeTags`
+
+2. Generate an access key and secret key for this user
+
+3. Add these credentials to the `.env.aws` file:
+   ```
+   AWS_ACCESS_KEY=your_aws_access_key_here
+   AWS_SECRET_KEY=your_aws_secret_key_here
+   ```
+
+4. Restart Prometheus:
+   ```
+   docker-compose restart prometheus
+   ```
+
+5. Verify that targets are being discovered:
+   - Go to Prometheus UI (http://your-server:9090)
+   - Navigate to Status > Targets
+   - Check that node-exporter-default and postgres-exporter-default have targets
+## AWS Secrets Manager Integration
+
+This setup uses AWS Secrets Manager to retrieve AWS credentials for Prometheus EC2 service discovery:
+
+1. Ensure your server has an IAM role with the following permissions:
+   - `secretsmanager:GetSecretValue` for the secret ARN: `arn:aws:secretsmanager:ap-southeast-1:533267407355:secret:aws/access_key/my_key-U0opHa`
+   - `ec2:DescribeInstances`
+   - `ec2:DescribeTags`
+
+2. The secret in AWS Secrets Manager should have the following structure:
+   ```json
+   {
+     "access_key": "YOUR_AWS_ACCESS_KEY",
+     "secret_key": "YOUR_AWS_SECRET_KEY"
+   }
+   ```
+
+3. Rebuild and restart the Prometheus container:
+   ```
+   docker-compose build prometheus
+   docker-compose up -d prometheus
+   ```
+
+4. Verify that targets are being discovered:
+   - Go to Prometheus UI (http://your-server:9090)
+   - Navigate to Status > Targets
+   - Check that node-exporter-default and postgres-exporter-default have targets

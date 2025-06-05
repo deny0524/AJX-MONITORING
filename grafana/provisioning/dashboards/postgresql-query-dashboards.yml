@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'PostgreSQL Query Monitoring'
+    orgId: 1
+    folder: 'PostgreSQL'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/dashboards/postgresql-query-monitoring.json

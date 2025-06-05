@@ -24,14 +24,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 21,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -39,11 +38,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -52,14 +53,15 @@
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": true,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -73,8 +75,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -82,7 +83,7 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -95,20 +96,18 @@
       "id": 1,
       "options": {
         "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi",
+          "hideZeros": false,
+          "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "9.5.1",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "datasource": {
@@ -116,13 +115,24 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\",job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"}[1m])) * 100)",
-          "legendFormat": "{{instance}}",
+          "expr": "cloudflare_zone_requests_current{zone=\"bgslwp.xyz\"}",
+          "legendFormat": "Current Requests",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(cloudflare_zone_requests_total{zone=\"bgslwp.xyz\"}[5m])",
+          "legendFormat": "Request Rate",
+          "range": true,
+          "refId": "B"
         }
       ],
-      "title": "CPU Usage",
+      "title": "HTTP Requests",
       "type": "timeseries"
     },
     {
@@ -136,11 +146,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -149,14 +161,15 @@
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": true,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -170,8 +183,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -179,7 +191,7 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -192,20 +204,18 @@
       "id": 2,
       "options": {
         "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi",
+          "hideZeros": false,
+          "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "9.5.1",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "datasource": {
@@ -213,13 +223,24 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 * (1 - ((node_memory_MemAvailable_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"} or (node_memory_Buffers_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"} + node_memory_Cached_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"} + node_memory_MemFree_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"})) / node_memory_MemTotal_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"}))",
-          "legendFormat": "{{instance}}",
+          "expr": "cloudflare_zone_bandwidth_current{zone=\"bgslwp.xyz\"}",
+          "legendFormat": "Current Bandwidth",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(cloudflare_zone_bandwidth_total{zone=\"bgslwp.xyz\"}[5m])",
+          "legendFormat": "Bandwidth Rate",
+          "range": true,
+          "refId": "B"
         }
       ],
-      "title": "Memory Usage",
+      "title": "Bandwidth Usage",
       "type": "timeseries"
     },
     {
@@ -233,11 +254,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -246,14 +269,15 @@
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": true,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -267,8 +291,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -276,7 +299,7 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -289,20 +312,18 @@
       "id": 3,
       "options": {
         "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi",
+          "hideZeros": false,
+          "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "9.5.1",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "datasource": {
@@ -310,13 +331,24 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 - ((node_filesystem_avail_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\",fstype!=\"tmpfs\",mountpoint=\"/\"} * 100) / node_filesystem_size_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\",fstype!=\"tmpfs\",mountpoint=\"/\"})",
-          "legendFormat": "{{instance}}",
+          "expr": "cloudflare_zone_threats_current{zone=\"bgslwp.xyz\"}",
+          "legendFormat": "Current Threats",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(cloudflare_zone_threats_total{zone=\"bgslwp.xyz\"}[5m])",
+          "legendFormat": "Threat Rate",
+          "range": true,
+          "refId": "B"
         }
       ],
-      "title": "Disk Usage (Root)",
+      "title": "Security Threats",
       "type": "timeseries"
     },
     {
@@ -330,11 +362,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -343,14 +377,15 @@
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": true,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -364,8 +399,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -373,7 +407,7 @@
               }
             ]
           },
-          "unit": "Bps"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -386,20 +420,18 @@
       "id": 4,
       "options": {
         "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi",
+          "hideZeros": false,
+          "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "9.5.1",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "datasource": {
@@ -407,8 +439,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_network_receive_bytes_total{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\",device!=\"lo\"}[1m])",
-          "legendFormat": "{{instance}} - {{device}} - RX",
+          "expr": "cloudflare_zone_pageviews_current{zone=\"bgslwp.xyz\"}",
+          "legendFormat": "Current Pageviews",
           "range": true,
           "refId": "A"
         },
@@ -418,14 +450,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_network_transmit_bytes_total{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\",device!=\"lo\"}[1m])",
-          "hide": false,
-          "legendFormat": "{{instance}} - {{device}} - TX",
+          "expr": "rate(cloudflare_zone_pageviews_total{zone=\"bgslwp.xyz\"}[5m])",
+          "legendFormat": "Pageview Rate",
           "range": true,
           "refId": "B"
         }
       ],
-      "title": "Network Traffic",
+      "title": "Pageviews",
       "type": "timeseries"
     },
     {
@@ -443,8 +474,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -467,6 +497,7 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -474,9 +505,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.5.1",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "datasource": {
@@ -484,25 +517,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(node_uname_info{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"})",
-          "legendFormat": "Total Instances",
+          "expr": "cloudflare_zone_requests_total{zone=\"bgslwp.xyz\"}",
+          "legendFormat": "Total Requests",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "count(node_uname_info{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"} unless on(instance) (node_scrape_collector_success{job=\"node-exporter\"} > 0))",
-          "hide": false,
-          "legendFormat": "Unreachable Instances",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Instance Count",
+      "title": "Total HTTP Requests",
       "type": "stat"
     },
     {
@@ -520,20 +541,15 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1
+                "color": "green"
               },
               {
                 "color": "red",
-                "value": 5
+                "value": 80
               }
             ]
           },
-          "unit": "s"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -545,10 +561,11 @@
       },
       "id": 6,
       "options": {
-        "displayMode": "gradient",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "orientation": "horizontal",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -556,10 +573,11 @@
           "fields": "",
           "values": false
         },
-        "showUnfilled": true,
-        "text": {}
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.5.1",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "datasource": {
@@ -567,223 +585,24 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_load1{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} - Load1",
+          "expr": "cloudflare_zone_bandwidth_total{zone=\"bgslwp.xyz\"}",
+          "legendFormat": "Total Bandwidth",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "System Load (1m)",
-      "type": "bargauge"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 24
-      },
-      "id": 7,
-      "options": {
-        "displayLabels": [
-          "name",
-          "percent"
-        ],
-        "legend": {
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": true,
-          "values": [
-            "percent"
-          ]
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "9.5.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "count by(environment) (node_uname_info{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"})",
-          "legendFormat": "{{environment}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Instances by Environment",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 24
-      },
-      "id": 8,
-      "options": {
-        "displayLabels": [
-          "name",
-          "percent"
-        ],
-        "legend": {
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": true,
-          "values": [
-            "percent"
-          ]
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "9.5.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "count by(instance_type) (node_uname_info{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"})",
-          "legendFormat": "{{instance_type}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Instances by Type",
-      "type": "piechart"
+      "title": "Total Bandwidth",
+      "type": "stat"
     }
   ],
-  "refresh": "10s",
-  "schemaVersion": 38,
-  "style": "dark",
+  "preload": false,
+  "refresh": "5s",
+  "schemaVersion": 41,
   "tags": [
-    "AJX",
-    "EC2",
-    "Node Exporter"
+    "cloudflare"
   ],
   "templating": {
-    "list": [
-      {
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "prometheus"
-        },
-        "definition": "label_values(node_uname_info{job=\"node-exporter\"}, environment)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Environment",
-        "multi": false,
-        "name": "environment",
-        "options": [],
-        "query": {
-          "query": "label_values(node_uname_info{job=\"node-exporter\"}, environment)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "prometheus"
-        },
-        "definition": "label_values(node_uname_info{job=\"node-exporter\", environment=~\"$environment\"}, instance)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Instance",
-        "multi": false,
-        "name": "instance",
-        "options": [],
-        "query": {
-          "query": "label_values(node_uname_info{job=\"node-exporter\", environment=~\"$environment\"}, instance)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      }
-    ]
+    "list": []
   },
   "time": {
     "from": "now-1h",
@@ -791,8 +610,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "AJX EC2 Monitoring Dashboard",
-  "uid": "ajx-ec2-monitoring",
-  "version": 1,
-  "weekStart": ""
+  "title": "Cloudflare Domain Monitoring",
+  "uid": "cloudflare-domain",
+  "version": 2
 }
