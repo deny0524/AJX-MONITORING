@@ -6,9 +6,12 @@ server:
 common:
   path_prefix: /loki
   storage:
-    filesystem:
-      chunks_directory: /loki/chunks
-      rules_directory: /loki/rules
+    s3:
+      endpoint: 
+      bucket_name: sg-loki-nginx-log
+      region: ${AWS_REGION}
+      access_key_id: ${AWS_ACCESS_KEY_ID}
+      secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   replication_factor: 1
   ring:
     kvstore:
@@ -30,9 +33,6 @@ storage_config:
     cache_location: /loki/tsdb-shipper-cache
     cache_ttl: 24h
     shared_store: s3
-  aws:
-    s3: s3://sg-loki-nginx-log
-    region: ${AWS_REGION}
 
 limits_config:
   enforce_metric_name: false
@@ -48,8 +48,4 @@ table_manager:
 
 compactor:
   working_directory: /loki/compactor
-<<<<<<< HEAD
   shared_store: s3
-=======
-  shared_store: s3
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
