@@ -15,11 +15,7 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
-<<<<<<< HEAD
-      
-=======
 
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
   - job_name: 'cloudflare'
     scrape_interval: 5m
     static_configs:
@@ -31,11 +27,6 @@ scrape_configs:
       - region: ap-southeast-1
         port: 9100
         # Default account: 533267407355
-<<<<<<< HEAD
-        access_key: "${AWS_ACCESS_KEY}"
-        secret_key: "${AWS_SECRET_KEY}"
-=======
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
         filters:
           - name: "tag:CreatedBy"
             values: ["AJX-ENV-DEPTOOL"]
@@ -58,22 +49,14 @@ scrape_configs:
       # Add a common job label for all node exporters
       - target_label: job
         replacement: 'node-exporter'
-<<<<<<< HEAD
-        
-=======
 
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
   # EC2 instances created by AJX-ENV-DEPTOOL with Node Exporter (Secondary Account)
   - job_name: 'node-exporter-secondary'
     ec2_sd_configs:
       - region: ap-southeast-1
         port: 9100
         # Secondary account: 925498464866
-<<<<<<< HEAD
-        role_arn: "arn:aws:iam::533267407355:role/prometheus-cross-account-role"
-=======
         role_arn: "arn:aws:iam::925498464866:role/prometheus-secondary-role"
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
         filters:
           - name: "tag:CreatedBy"
             values: ["AJX-ENV-DEPTOOL"]
@@ -96,22 +79,13 @@ scrape_configs:
       # Add a common job label for all node exporters
       - target_label: job
         replacement: 'node-exporter'
-<<<<<<< HEAD
-        
-=======
 
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
   # PostgreSQL Exporter for DB instances (Default Account)
   - job_name: 'postgres-exporter-default'
     ec2_sd_configs:
       - region: ap-southeast-1
         port: 9187
         # Default account: 533267407355
-<<<<<<< HEAD
-        access_key: "${AWS_ACCESS_KEY}"
-        secret_key: "${AWS_SECRET_KEY}"
-=======
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
         filters:
           - name: "tag:CreatedBy"
             values: ["AJX-ENV-DEPTOOL"]
@@ -127,25 +101,17 @@ scrape_configs:
         target_label: instance
       - source_labels: [__meta_ec2_tag_Environment]
         target_label: environment
-<<<<<<< HEAD
-        
-=======
       # Add a common job label for all postgres exporters
       - target_label: job
         replacement: 'postgres-exporter'
 
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
   # PostgreSQL Exporter for DB instances (Secondary Account)
   - job_name: 'postgres-exporter-secondary'
     ec2_sd_configs:
       - region: ap-southeast-1
         port: 9187
         # Secondary account: 925498464866
-<<<<<<< HEAD
-        role_arn: "arn:aws:iam::533267407355:role/prometheus-cross-account-role"
-=======
         role_arn: "arn:aws:iam::925498464866:role/prometheus-secondary-role"
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
         filters:
           - name: "tag:CreatedBy"
             values: ["AJX-ENV-DEPTOOL"]
@@ -161,7 +127,9 @@ scrape_configs:
         target_label: instance
       - source_labels: [__meta_ec2_tag_Environment]
         target_label: environment
-<<<<<<< HEAD
+      # Add a common job label for all postgres exporters
+      - target_label: job
+        replacement: 'postgres-exporter'
 
   # Linode servers with Node Exporter
   - job_name: 'linode-nodes'
@@ -183,9 +151,3 @@ scrape_configs:
         []
     scrape_interval: 30s
     metrics_path: /metrics
-=======
-      # Add a common job label for all postgres exporters
-      - target_label: job
-        replacement: 'postgres-exporter'
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
-
