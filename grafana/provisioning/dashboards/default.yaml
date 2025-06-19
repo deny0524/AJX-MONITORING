@@ -21,8 +21,4 @@ providers:
     allowUiUpdates: true
     options:
       # <string, required> path to dashboard files on disk. Required
-<<<<<<< HEAD
       path: /var/lib/grafana/dashboards
-=======
-      path: /var/lib/grafana/dashboards
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
