@@ -64,10 +64,9 @@ services:
     image: grafana/loki:2.9.0
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/config.yaml
+    command: -config.file=/etc/loki/config.yaml -config.expand-env=true
     volumes:
       - ./loki:/etc/loki
-      - /opt/ajx-monitoring/loki:/etc/loki
       - loki_data:/loki
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}

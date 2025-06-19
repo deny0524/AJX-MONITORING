@@ -7,11 +7,8 @@ common:
   path_prefix: /loki
   storage:
     s3:
-      endpoint: 
-      bucket_name: sg-loki-nginx-log
+      s3: s3://sg-loki-nginx-log
       region: ${AWS_REGION}
-      access_key_id: ${AWS_ACCESS_KEY_ID}
-      secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   replication_factor: 1
   ring:
     kvstore:
