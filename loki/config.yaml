@@ -7,7 +7,7 @@ common:
   path_prefix: /loki
   storage:
     s3:
-      s3: s3://sg-loki-nginx-log
+      s3: s3://${AWS_REGION}/sg-loki-nginx-log
       region: ${AWS_REGION}
   replication_factor: 1
   ring:
