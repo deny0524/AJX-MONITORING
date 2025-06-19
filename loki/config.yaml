@@ -7,7 +7,7 @@ common:
   path_prefix: /loki
   storage:
     s3:
-      s3: s3://sg-loki-nginx-log
+      bucketnames: sg-loki-nginx-log
       region: ${AWS_REGION}
       endpoint: s3.ap-southeast-1.amazonaws.com
   replication_factor: 1
