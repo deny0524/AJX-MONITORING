@@ -9,6 +9,7 @@ common:
     s3:
       s3: s3://sg-loki-nginx-log
       region: ${AWS_REGION}
+      endpoint: s3.ap-southeast-1.amazonaws.com
   replication_factor: 1
   ring:
     kvstore:
@@ -35,17 +36,21 @@ limits_config:
   enforce_metric_name: false
   reject_old_samples: true
   reject_old_samples_max_age: 168h
+  retention_period: 720h
 
 chunk_store_config:
   max_look_back_period: 0s
 
 table_manager:
-  retention_deletes_enabled: false
-  retention_period: 0s
+  retention_deletes_enabled: true
+  retention_period: 720h
 
 compactor:
   working_directory: /loki/compactor
   shared_store: s3
+  retention_enabled: true
+  retention_delete_delay: 2h
+  retention_delete_worker_count: 150
 
 ruler:
   storage:
