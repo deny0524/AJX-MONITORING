@@ -26,23 +26,6 @@ services:
     depends_on:
       - prometheus
 
-  telegram-bot:
-    image: metalmatze/alertmanager-bot:0.4.3
-    environment:
-      - ALERTMANAGER_URL=http://alertmanager:9093
-      - TELEGRAM_ADMIN=YOUR_TELEGRAM_USER_ID
-      - TELEGRAM_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
-      - STORE=bolt
-      - BOLT_PATH=/data/bot.db
-      - TEMPLATE_PATHS=/templates/telegram.tmpl
-    volumes:
-      - ./alertmanager/templates:/templates
-      - telegram_bot_data:/data
-    ports:
-      - "9087:8080"
-    restart: unless-stopped
-    depends_on:
-      - alertmanager
 
   grafana:
     image: grafana/grafana:latest
@@ -96,4 +79,3 @@ volumes:
   prometheus_data:
   grafana_data:
   loki_data:
-  telegram_bot_data:

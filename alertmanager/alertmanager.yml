@@ -1,30 +1,5 @@
 global:
   resolve_timeout: 5m
-<<<<<<< HEAD
-  smtp_smarthost: 'smtp.example.com:587'
-  smtp_from: 'alertmanager@example.com'
-  smtp_auth_username: 'alertmanager'
-  smtp_auth_password: 'password'  # Replace with actual password or use secrets management
-
-templates:
-  - '/etc/alertmanager/templates/*.tmpl'
-
-route:
-  group_by: ['alertname', 'instance', 'severity']
-  group_wait: 30s
-  group_interval: 5m
-  repeat_interval: 4h
-  receiver: 'email-notifications'
-  routes:
-  - match:
-      severity: critical
-    receiver: 'telegram-critical'
-    continue: true
-  - match:
-      severity: warning
-    receiver: 'telegram-warnings'
-    continue: true
-=======
 
 route:
   group_by: ['alertname', 'instance']
@@ -32,40 +7,13 @@ route:
   group_interval: 5m
   repeat_interval: 1h
   receiver: 'email-notifications'
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
 
 receivers:
 - name: 'email-notifications'
   email_configs:
-<<<<<<< HEAD
-  - to: 'team@example.com'
-    send_resolved: true
-- name: 'telegram-critical'
-  webhook_configs:
-  - url: 'http://localhost:9087/alert/-YOUR_TELEGRAM_CHAT_ID_HERE-'
-    send_resolved: true
-    http_config:
-      bearer_token: YOUR_TELEGRAM_BOT_TOKEN
-    max_alerts: 5
-- name: 'telegram-warnings'
-  webhook_configs:
-  - url: 'http://localhost:9087/alert/-YOUR_TELEGRAM_CHAT_ID_HERE-'
-    send_resolved: true
-    http_config:
-      bearer_token: YOUR_TELEGRAM_BOT_TOKEN
-    max_alerts: 5
-
-inhibit_rules:
-  - source_match:
-      severity: 'critical'
-    target_match:
-      severity: 'warning'
-    equal: ['alertname', 'instance']
-=======
   - to: 'your-email@example.com'
     from: 'alertmanager@example.com'
     smarthost: 'smtp.example.com:587'
     auth_username: 'smtp-user'
     auth_password: 'smtp-password'
     send_resolved: true
->>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
