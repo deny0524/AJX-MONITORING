@@ -80,6 +80,10 @@ services:
       - ./promtail:/etc/promtail
       - /var/log:/var/log
       - ./promtail/targets:/etc/promtail/targets
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
     command: -config.file=/etc/promtail/config.yaml
     depends_on:
       - loki

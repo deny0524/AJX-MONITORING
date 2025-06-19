@@ -28,18 +28,73 @@ scrape_configs:
       - timestamp:
           source: time_local
           format: 02/Jan/2006:15:04:05 -0700
-          
-  # Auto-discovery for Nginx logs on other servers
-  - job_name: nginx-discovery
-    file_sd_configs:
-      - files:
-          - /etc/promtail/targets/*.yml
-        refresh_interval: 5m
+
+  # EC2 Auto-discovery for Nginx logs (Default Account)
+  - job_name: nginx-ec2-default
+    ec2_sd_configs:
+      - region: ap-southeast-1
+        port: 80
+        filters:
+          - name: "tag:CreatedBy"
+            values: ["AJX-ENV-DEPTOOL"]
+        refresh_interval: 30s
     relabel_configs:
-      - source_labels: [__address__]
+      - source_labels: [__meta_ec2_public_ip]
+        target_label: __address__
+        replacement: '${1}:80'
+      - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
-      - source_labels: [__path__]
-        target_label: __path__
+      - source_labels: [__meta_ec2_tag_Environment]
+        target_label: environment
+      - source_labels: [__meta_ec2_availability_zone]
+        target_label: zone
+      - source_labels: [__meta_ec2_instance_type]
+        target_label: instance_type
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: private_ip
+      - target_label: job
+        replacement: 'nginx'
+      - target_label: __path__
+        replacement: '/var/log/nginx/*.log'
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
+      - labels:
+          method:
+          status:
+          request:
+      - timestamp:
+          source: time_local
+          format: 02/Jan/2006:15:04:05 -0700
+
+  # EC2 Auto-discovery for Nginx logs (Secondary Account)
+  - job_name: nginx-ec2-secondary
+    ec2_sd_configs:
+      - region: ap-southeast-1
+        port: 80
+        role_arn: "arn:aws:iam::925498464866:role/prometheus-secondary-role"
+        filters:
+          - name: "tag:CreatedBy"
+            values: ["AJX-ENV-DEPTOOL"]
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [__meta_ec2_public_ip]
+        target_label: __address__
+        replacement: '${1}:80'
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+      - source_labels: [__meta_ec2_tag_Environment]
+        target_label: environment
+      - source_labels: [__meta_ec2_availability_zone]
+        target_label: zone
+      - source_labels: [__meta_ec2_instance_type]
+        target_label: instance_type
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: private_ip
+      - target_label: job
+        replacement: 'nginx'
+      - target_label: __path__
+        replacement: '/var/log/nginx/*.log'
     pipeline_stages:
       - regex:
           expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
