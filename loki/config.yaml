@@ -9,7 +9,6 @@ common:
     s3:
       s3: s3://sg-loki-nginx-log
       region: ${AWS_REGION}
-      endpoint: s3.${AWS_REGION}.amazonaws.com
   replication_factor: 1
   ring:
     kvstore:
@@ -47,3 +46,9 @@ table_manager:
 compactor:
   working_directory: /loki/compactor
   shared_store: s3
+
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
