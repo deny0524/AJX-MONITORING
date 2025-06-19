@@ -1,0 +1,68 @@
+{{ define "telegram.default" }}
+🚨 *{{ .Status | toUpper }}* 🚨
+{{ if eq .Status "firing" }}🔥{{ else }}✅{{ end }} *{{ .CommonLabels.alertname }}*
+
+*Instance:* {{ .CommonLabels.instance }}
+*Severity:* {{ .CommonLabels.severity | toUpper }}
+{{ if eq .Status "firing" }}
+*Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+{{ else }}
+*Resolved:* {{ .EndsAt.Format "2006-01-02 15:04:05" }}
+*Duration:* {{ duration .StartsAt .EndsAt }}
+{{ end }}
+
+{{ if gt (len .Alerts.Firing) 0 }}
+*Alerts Firing:* {{ .Alerts.Firing | len }}
+{{ range .Alerts.Firing }}
+----------------------------
+📊 *Metrics:*
+{{ if .Annotations.description }}{{ .Annotations.description }}{{ end }}
+{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
+{{ end }}
+{{ end }}
+
+{{ if gt (len .Alerts.Resolved) 0 }}
+*Alerts Resolved:* {{ .Alerts.Resolved | len }}
+{{ range .Alerts.Resolved }}
+----------------------------
+{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
+{{ end }}
+{{ end }}
+
+#alert #{{ .CommonLabels.severity }}
+{{ end }}
+
+{{ define "telegram.cpu" }}
+🔴 *{{ .Status | toUpper }}: CPU ALERT* 🔴
+
+{{ if eq .Status "firing" }}🚨 *HIGH CPU USAGE DETECTED* 🚨{{ else }}✅ *CPU USAGE BACK TO NORMAL* ✅{{ end }}
+
+*Instance:* {{ .CommonLabels.instance }}
+*Severity:* {{ .CommonLabels.severity | toUpper }}
+
+{{ if eq .Status "firing" }}
+⏰ *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+{{ else }}
+✅ *Resolved:* {{ .EndsAt.Format "2006-01-02 15:04:05" }}
+⏱️ *Duration:* {{ duration .StartsAt .EndsAt }}
+{{ end }}
+
+{{ if gt (len .Alerts.Firing) 0 }}
+{{ range .Alerts.Firing }}
+----------------------------
+📈 *CPU Usage:* {{ $value := index (regexReplaceAll ".*VALUE = ([0-9.]+).*" .Annotations.description "$1") 0 }}{{ printf "%.2f" $value }}%
+
+{{ if .Annotations.description }}
+*Details:*
+{{ .Annotations.description }}
+{{ end }}
+{{ end }}
+{{ end }}
+
+⚠️ *Action Required:*
+- Check running processes
+- Review system load
+- Investigate potential resource contention
+
+#alert #cpu #{{ .CommonLabels.severity }}
+{{ end }}

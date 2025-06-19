@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 10,
+  "id": 53,
   "links": [],
   "panels": [
     {
@@ -108,7 +108,7 @@
         },
         "tooltip": {
           "hideZeros": false,
-          "mode": "multi",
+          "mode": "single",
           "sort": "none"
         }
       },
@@ -117,15 +117,20 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\",job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"}[1m])) * 100)",
+          "interval": "",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A"
         }
       ],
+      "alerting": {
+        "alertName": "High CPU Usage",
+        "enabled": true
+      },
       "title": "CPU Usage",
       "type": "timeseries"
     },
@@ -208,7 +213,7 @@
         },
         "tooltip": {
           "hideZeros": false,
-          "mode": "multi",
+          "mode": "single",
           "sort": "none"
         }
       },
@@ -217,7 +222,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "100 * (1 - ((node_memory_MemAvailable_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"} or (node_memory_Buffers_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"} + node_memory_Cached_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"} + node_memory_MemFree_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"})) / node_memory_MemTotal_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"}))",
@@ -226,6 +231,10 @@
           "refId": "A"
         }
       ],
+      "alerting": {
+        "alertName": "High Memory Usage",
+        "enabled": true
+      },
       "title": "Memory Usage",
       "type": "timeseries"
     },
@@ -310,7 +319,7 @@
         },
         "tooltip": {
           "hideZeros": false,
-          "mode": "multi",
+          "mode": "single",
           "sort": "none"
         }
       },
@@ -319,7 +328,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "100 - ((node_filesystem_avail_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\",fstype!=\"tmpfs\",mountpoint=\"/\"} * 100) / node_filesystem_size_bytes{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\",fstype!=\"tmpfs\",mountpoint=\"/\"})",
@@ -328,8 +337,96 @@
           "refId": "A"
         }
       ],
+      "alerting": {
+        "alertName": "High Disk Usage",
+        "enabled": true
+      },
       "title": "Disk Usage (Root)",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 6,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "text": {},
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "node_load1{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - Load1",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "alerting": {
+        "alertName": "High System Load",
+        "enabled": true
+      },
+      "title": "System Load (1m)",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -394,8 +491,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 8
+        "x": 0,
+        "y": 16
       },
       "id": 4,
       "options": {
@@ -412,7 +509,7 @@
         },
         "tooltip": {
           "hideZeros": false,
-          "mode": "multi",
+          "mode": "single",
           "sort": "none"
         }
       },
@@ -421,7 +518,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "rate(node_network_receive_bytes_total{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\",device!=\"lo\"}[1m])",
@@ -432,7 +529,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "rate(node_network_transmit_bytes_total{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\",device!=\"lo\"}[1m])",
@@ -442,6 +539,10 @@
           "refId": "B"
         }
       ],
+      "alerting": {
+        "alertName": "High Network Traffic",
+        "enabled": true
+      },
       "title": "Network Traffic",
       "type": "timeseries"
     },
@@ -464,7 +565,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 1000
               }
             ]
           }
@@ -474,7 +575,7 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 0,
+        "x": 12,
         "y": 16
       },
       "id": 5,
@@ -500,7 +601,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "count(node_uname_info{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"})",
@@ -511,7 +612,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "count(node_uname_info{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"} unless on(instance) (node_scrape_collector_success{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"} > 0))",
@@ -521,88 +622,12 @@
           "refId": "B"
         }
       ],
+      "alerting": {
+        "alertName": "Instance Count Alert",
+        "enabled": true
+      },
       "title": "Instance Count",
       "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green"
-              },
-              {
-                "color": "yellow",
-                "value": 1
-              },
-              {
-                "color": "red",
-                "value": 5
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "id": 6,
-      "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "text": {},
-        "valueMode": "color"
-      },
-      "pluginVersion": "12.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "node_load1{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} - Load1",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "System Load (1m)",
-      "type": "bargauge"
     },
     {
       "datasource": {
@@ -629,78 +654,6 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24
-      },
-      "id": 7,
-      "options": {
-        "displayLabels": [
-          "name",
-          "percent"
-        ],
-        "legend": {
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": true,
-          "values": [
-            "percent"
-          ]
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "count by(environment) (node_uname_info{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"})",
-          "legendFormat": "{{environment}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Instances by Environment",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
         "y": 24
       },
       "id": 8,
@@ -736,7 +689,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "count by(instance_type) (node_uname_info{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"})",
@@ -747,10 +700,82 @@
       ],
       "title": "Instances by Type",
       "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 7,
+      "options": {
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "percent"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "count by(environment) (node_uname_info{job=\"node-exporter\",environment=~\"$environment\",instance=~\"$instance\"})",
+          "legendFormat": "{{environment}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Instances by Environment",
+      "type": "piechart"
     }
   ],
   "preload": false,
-  "refresh": "10s",
+  "refresh": "1m",
   "schemaVersion": 41,
   "tags": [
     "AJX",
@@ -806,12 +831,12 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "AJX EC2 Monitoring Dashboard",
-  "uid": "ajx-ec2-monitoring",
-  "version": 10
+  "uid": "ba9e6085-dddd-4c5d-8cb9-7782366bc358",
+  "version": 3
 }

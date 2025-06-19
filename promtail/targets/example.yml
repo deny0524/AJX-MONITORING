@@ -1,0 +1,13 @@
+- targets:
+  - web-server-1:9080
+  labels:
+    job: nginx
+    env: production
+    __path__: /var/log/nginx/*.log
+
+- targets:
+  - web-server-2:9080
+  labels:
+    job: nginx
+    env: staging
+    __path__: /var/log/nginx/*.log

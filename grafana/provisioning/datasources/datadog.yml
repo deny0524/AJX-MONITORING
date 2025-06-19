@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - name: Datadog
+    type: grafana-datadog-datasource
+    access: proxy
+    url: https://api.datadoghq.com
+    jsonData:
+      apiURL: https://api.datadoghq.com
+      appURL: https://app.datadoghq.com
+    secureJsonData:
+      apiKey: ${DD_API_KEY}
+      appKey: ${DD_APP_KEY}
+    editable: true
