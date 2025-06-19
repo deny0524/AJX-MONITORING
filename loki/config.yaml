@@ -8,7 +8,7 @@ common:
   storage:
     s3:
       bucketnames: sg-loki-nginx-log
-      region: ${AWS_REGION}
+      region: ap-southeast-1
       endpoint: s3.ap-southeast-1.amazonaws.com
   replication_factor: 1
   ring:
