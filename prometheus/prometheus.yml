@@ -16,11 +16,6 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'cloudflare'
-    scrape_interval: 5m
-    static_configs:
-      - targets: ['cloudflare-exporter:9199']
-
   # EC2 instances created by AJX-ENV-DEPTOOL with Node Exporter (Default Account)
   - job_name: 'node-exporter-default'
     ec2_sd_configs:
