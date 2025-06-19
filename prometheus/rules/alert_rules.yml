@@ -1,4 +1,5 @@
 groups:
+<<<<<<< HEAD
   - name: ec2_alerts
     rules:
       - alert: HighCPULoad
@@ -37,3 +38,33 @@ groups:
         annotations:
           summary: "Instance down (instance {{ $labels.instance }})"
           description: "Instance has been down for more than 5 minutes"
+=======
+- name: instance_alerts
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+  
+  - alert: HighCPULoad
+    expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High CPU load on {{ $labels.instance }}"
+      description: "CPU load is above 80% for more than 10 minutes on {{ $labels.instance }}."
+  
+  - alert: HighMemoryUsage
+    expr: (node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes) / node_memory_MemTotal_bytes * 100 > 85
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High memory usage on {{ $labels.instance }}"
+      description: "Memory usage is above 85% for more than 10 minutes on {{ $labels.instance }}."
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881

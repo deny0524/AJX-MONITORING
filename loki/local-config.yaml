@@ -48,4 +48,8 @@ table_manager:
 compactor:
   working_directory: /loki/compactor
   shared_store: filesystem
+<<<<<<< HEAD
   compaction_interval: 10m
+=======
+  compaction_interval: 10m
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881

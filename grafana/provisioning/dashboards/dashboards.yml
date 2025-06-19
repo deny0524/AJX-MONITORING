@@ -1,6 +1,7 @@
 apiVersion: 1
 
 providers:
+<<<<<<< HEAD
   - name: 'Default'
     orgId: 1
     folder: ''
@@ -9,3 +10,15 @@ providers:
     editable: true
     options:
       path: /var/lib/grafana/dashboards
+=======
+  - name: 'AJX Dashboards'
+    orgId: 1
+    folder: 'AJX Environments'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881

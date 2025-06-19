@@ -13,6 +13,7 @@ services:
       - "9090:9090"
     restart: unless-stopped
 
+<<<<<<< HEAD
   alertmanager:
     image: prom/alertmanager:latest
     volumes:
@@ -44,6 +45,8 @@ services:
     depends_on:
       - alertmanager
 
+=======
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
   grafana:
     image: grafana/grafana:latest
     volumes:
@@ -66,7 +69,11 @@ services:
       - "3100:3100"
     command: -config.file=/etc/loki/config.yaml
     volumes:
+<<<<<<< HEAD
       - ./loki:/etc/loki
+=======
+      - /opt/ajx-monitoring/loki:/etc/loki
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
       - loki_data:/loki
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
@@ -77,6 +84,7 @@ services:
   promtail:
     image: grafana/promtail:latest
     volumes:
+<<<<<<< HEAD
       - ./promtail:/etc/promtail
       - /var/log:/var/log
       - ./promtail/targets:/etc/promtail/targets
@@ -84,6 +92,11 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
+=======
+      - ./promtail/config.yaml:/etc/promtail/config.yaml
+      - /var/log:/var/log
+      - ./promtail/targets:/etc/promtail/targets
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
     command: -config.file=/etc/promtail/config.yaml
     depends_on:
       - loki
@@ -93,4 +106,7 @@ volumes:
   prometheus_data:
   grafana_data:
   loki_data:
+<<<<<<< HEAD
   telegram_bot_data:
+=======
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881

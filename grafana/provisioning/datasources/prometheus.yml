@@ -4,8 +4,14 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
+<<<<<<< HEAD
     orgId: 1
     url: http://prometheus:9090
     basicAuth: false
     isDefault: true
     editable: false
+=======
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881

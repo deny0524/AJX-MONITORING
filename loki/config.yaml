@@ -48,4 +48,8 @@ table_manager:
 
 compactor:
   working_directory: /loki/compactor
+<<<<<<< HEAD
   shared_store: s3
+=======
+  shared_store: s3
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881

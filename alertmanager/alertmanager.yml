@@ -1,5 +1,6 @@
 global:
   resolve_timeout: 5m
+<<<<<<< HEAD
   smtp_smarthost: 'smtp.example.com:587'
   smtp_from: 'alertmanager@example.com'
   smtp_auth_username: 'alertmanager'
@@ -23,10 +24,20 @@ route:
       severity: warning
     receiver: 'telegram-warnings'
     continue: true
+=======
+
+route:
+  group_by: ['alertname', 'instance']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: 'email-notifications'
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
 
 receivers:
 - name: 'email-notifications'
   email_configs:
+<<<<<<< HEAD
   - to: 'team@example.com'
     send_resolved: true
 - name: 'telegram-critical'
@@ -50,3 +61,11 @@ inhibit_rules:
     target_match:
       severity: 'warning'
     equal: ['alertname', 'instance']
+=======
+  - to: 'your-email@example.com'
+    from: 'alertmanager@example.com'
+    smarthost: 'smtp.example.com:587'
+    auth_username: 'smtp-user'
+    auth_password: 'smtp-password'
+    send_resolved: true
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881

@@ -10,4 +10,8 @@
   labels:
     job: nginx
     env: staging
+<<<<<<< HEAD
     __path__: /var/log/nginx/*.log
+=======
+    __path__: /var/log/nginx/*.log
+>>>>>>> 4a3fc5d84dbf914abe32c477ff49b4ebcca51881
