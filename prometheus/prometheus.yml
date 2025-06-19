@@ -134,20 +134,18 @@ scrape_configs:
   # Linode servers with Node Exporter
   - job_name: 'linode-nodes'
     static_configs:
-      - targets:
+      - targets: []
         # Add your Linode server IPs here
         # - '45.79.123.45:9100'
         # - '45.79.123.46:9100'
-        []
     scrape_interval: 15s
     metrics_path: /metrics
 
   # Linode PostgreSQL servers
   - job_name: 'linode-postgres'
     static_configs:
-      - targets:
+      - targets: []
         # Add your Linode DB server IPs here
         # - '45.79.123.47:9187'
-        []
     scrape_interval: 30s
     metrics_path: /metrics
