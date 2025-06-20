@@ -1,9 +1,8 @@
 [
   {
     "targets": [
-      "your-linode-host1:9100",
-      "your-linode-host2:9100",
-      "your-linode-host3:9100"
+      "11.22.33.44:9100",
+      "55.66.77.88:9100"
     ],
     "labels": {
       "cloud_provider": "linode",
