@@ -1,8 +1,8 @@
 [
   {
     "targets": [
-      "your-linode-db1:9187",
-      "your-linode-db2:9187"
+      "11.22.33.44:9187",
+      "55.66.77.88:9187"
     ],
     "labels": {
       "cloud_provider": "linode",
