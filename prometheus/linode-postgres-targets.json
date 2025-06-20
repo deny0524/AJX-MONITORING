@@ -1,0 +1,13 @@
+[
+  {
+    "targets": [
+      "your-linode-db1:9187",
+      "your-linode-db2:9187"
+    ],
+    "labels": {
+      "cloud_provider": "linode",
+      "environment": "production",
+      "job": "postgres-exporter"
+    }
+  }
+]

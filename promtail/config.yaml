@@ -9,92 +9,36 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  # Static Nginx logs configuration
+  # Syslog receiver for remote nginx logs
+  - job_name: syslog-nginx
+    syslog:
+      listen_address: 0.0.0.0:1514
+      idle_timeout: 60s
+      label_structured_data: yes
+      labels:
+        job: nginx-syslog
+    relabel_configs:
+      - source_labels: ['__syslog_message_hostname']
+        target_label: 'instance'
+      - source_labels: ['__syslog_message_app_name']
+        target_label: 'app'
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
+      - labels:
+          method:
+          status:
+          request:
+          remote_addr:
+
+  # Local nginx logs (if any exist on this server)
   - job_name: nginx-local
     static_configs:
       - targets:
           - localhost
         labels:
-          job: nginx
-          source: local
+          job: nginx-local
           __path__: /var/log/nginx/*.log
-    pipeline_stages:
-      - regex:
-          expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
-      - labels:
-          method:
-          status:
-          request:
-      - timestamp:
-          source: time_local
-          format: 02/Jan/2006:15:04:05 -0700
-
-  # EC2 Auto-discovery for Nginx logs (Default Account)
-  - job_name: nginx-ec2-default
-    ec2_sd_configs:
-      - region: ap-southeast-1
-        port: 80
-        filters:
-          - name: "tag:CreatedBy"
-            values: ["AJX-ENV-DEPTOOL"]
-        refresh_interval: 30s
-    relabel_configs:
-      - source_labels: [__meta_ec2_public_ip]
-        target_label: __address__
-        replacement: '${1}:80'
-      - source_labels: [__meta_ec2_tag_Name]
-        target_label: instance
-      - source_labels: [__meta_ec2_tag_Environment]
-        target_label: environment
-      - source_labels: [__meta_ec2_availability_zone]
-        target_label: zone
-      - source_labels: [__meta_ec2_instance_type]
-        target_label: instance_type
-      - source_labels: [__meta_ec2_private_ip]
-        target_label: private_ip
-      - target_label: job
-        replacement: 'nginx'
-      - target_label: __path__
-        replacement: '/var/log/nginx/*.log'
-    pipeline_stages:
-      - regex:
-          expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
-      - labels:
-          method:
-          status:
-          request:
-      - timestamp:
-          source: time_local
-          format: 02/Jan/2006:15:04:05 -0700
-
-  # EC2 Auto-discovery for Nginx logs (Secondary Account)
-  - job_name: nginx-ec2-secondary
-    ec2_sd_configs:
-      - region: ap-southeast-1
-        port: 80
-        role_arn: "arn:aws:iam::925498464866:role/prometheus-secondary-role"
-        filters:
-          - name: "tag:CreatedBy"
-            values: ["AJX-ENV-DEPTOOL"]
-        refresh_interval: 30s
-    relabel_configs:
-      - source_labels: [__meta_ec2_public_ip]
-        target_label: __address__
-        replacement: '${1}:80'
-      - source_labels: [__meta_ec2_tag_Name]
-        target_label: instance
-      - source_labels: [__meta_ec2_tag_Environment]
-        target_label: environment
-      - source_labels: [__meta_ec2_availability_zone]
-        target_label: zone
-      - source_labels: [__meta_ec2_instance_type]
-        target_label: instance_type
-      - source_labels: [__meta_ec2_private_ip]
-        target_label: private_ip
-      - target_label: job
-        replacement: 'nginx'
-      - target_label: __path__
-        replacement: '/var/log/nginx/*.log'
     pipeline_stages:
       - regex:
           expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'

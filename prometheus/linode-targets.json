@@ -1,0 +1,14 @@
+[
+  {
+    "targets": [
+      "your-linode-host1:9100",
+      "your-linode-host2:9100",
+      "your-linode-host3:9100"
+    ],
+    "labels": {
+      "cloud_provider": "linode",
+      "environment": "production",
+      "job": "node-exporter"
+    }
+  }
+]

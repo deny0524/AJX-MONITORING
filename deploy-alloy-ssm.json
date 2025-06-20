@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "2.2",
+  "description": "Install Grafana Alloy on EC2 instances",
+  "parameters": {
+    "lokiEndpoint": {
+      "type": "String",
+      "description": "Loki endpoint URL",
+      "default": "http://10.20.11.55:3100/loki/api/v1/push"
+    }
+  },
+  "mainSteps": [
+    {
+      "action": "aws:runShellScript",
+      "name": "installAlloy",
+      "inputs": {
+        "runCommand": [
+          "#!/bin/bash",
+          "set -e",
+          "echo 'Installing Grafana Alloy...'",
+          "",
+          "# Download Alloy",
+          "curl -fsSL https://github.com/grafana/alloy/releases/download/v1.0.0/alloy-1.0.0-1.amd64.deb -o /tmp/alloy.deb",
+          "dpkg -i /tmp/alloy.deb || apt-get install -f -y",
+          "",
+          "# Create config directory",
+          "mkdir -p /etc/alloy",
+          "",
+          "# Create Alloy configuration",
+          "cat > /etc/alloy/config.alloy << 'EOF'",
+          "logging {",
+          "  level  = \"info\"",
+          "  format = \"logfmt\"",
+          "}",
+          "",
+          "loki.write \"default\" {",
+          "  endpoint {",
+          "    url = \"{{ lokiEndpoint }}\"",
+          "  }",
+          "}",
+          "",
+          "local.file_match \"nginx_logs\" {",
+          "  path_targets = [",
+          "    {__path__ = \"/var/log/nginx/access.log\", job = \"nginx-access\", instance = env(\"HOSTNAME\")},",
+          "    {__path__ = \"/var/log/nginx/error.log\", job = \"nginx-error\", instance = env(\"HOSTNAME\")},",
+          "  ]",
+          "}",
+          "",
+          "loki.source.file \"nginx\" {",
+          "  targets    = local.file_match.nginx_logs.targets",
+          "  forward_to = [loki.process.nginx.receiver]",
+          "}",
+          "",
+          "loki.process \"nginx\" {",
+          "  forward_to = [loki.write.default.receiver]",
+          "  ",
+          "  stage.regex {",
+          "    expression = \"^(?P<remote_addr>\\\\S+) - (?P<remote_user>\\\\S+) \\\\[(?P<time_local>[^\\\\]]+)\\\\] \\\"(?P<method>\\\\S+) (?P<request>\\\\S+) (?P<protocol>\\\\S+)\\\" (?P<status>\\\\d+) (?P<body_bytes_sent>\\\\d+)\"",
+          "  }",
+          "  ",
+          "  stage.labels {",
+          "    values = {",
+          "      method = \"\",",
+          "      status = \"\",",
+          "    }",
+          "  }",
+          "}",
+          "EOF",
+          "",
+          "# Start and enable Alloy",
+          "systemctl enable alloy",
+          "systemctl start alloy",
+          "systemctl status alloy",
+          "",
+          "echo 'Alloy installation completed successfully'"
+        ]
+      }
+    }
+  ]
+}
