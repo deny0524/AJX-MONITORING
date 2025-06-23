@@ -89,6 +89,8 @@ services:
       - HTTP_PORT=8081
       - IGNORE_HTTPS_ERRORS=true
       - HTTP_HOST=0.0.0.0
+      - RENDERING_MODE=default
+      - RENDERING_CLUSTERING_MODE=browser
     restart: unless-stopped
 
 volumes:

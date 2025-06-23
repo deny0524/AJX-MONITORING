@@ -1,0 +1,99 @@
+{{ range .Alerts }}
+{{ if eq .Status "firing" }}
+{{ if eq .Labels.alertname "CPU Usage" }}
+🔴 *FIRING: CPU ALERT* 🔴
+
+🚨 *HIGH CPU USAGE DETECTED* 🚨
+
+*Instance:* {{ .Labels.instance }}
+*Severity:* {{ .Labels.severity | toUpper }}
+*CPU Usage:* {{ printf "%.2f" .Values.A }}%
+
+⏰ *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+
+⚠️ *Action Required:*
+- Check running processes
+- Review system load
+- Investigate potential resource contention
+
+{{ if .CommonAnnotations.image_url }}📊 [Dashboard Image]({{ .CommonAnnotations.image_url }}){{ end }}
+
+#alert #cpu #{{ .Labels.severity }}
+{{ else if eq .Labels.alertname "Memory Usage" }}
+🔴 *FIRING: MEMORY ALERT* 🔴
+
+🚨 *HIGH MEMORY USAGE DETECTED* 🚨
+
+*Instance:* {{ .Labels.instance }}
+*Severity:* {{ .Labels.severity | toUpper }}
+*Memory Usage:* {{ printf "%.2f" .Values.A }}%
+
+⏰ *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+
+⚠️ *Action Required:*
+- Check memory-intensive processes
+- Review application memory leaks
+- Consider increasing swap space
+
+{{ if .CommonAnnotations.image_url }}📊 [Dashboard Image]({{ .CommonAnnotations.image_url }}){{ end }}
+
+#alert #memory #{{ .Labels.severity }}
+{{ else if eq .Labels.alertname "Disk Usage" }}
+🔴 *FIRING: DISK ALERT* 🔴
+
+🚨 *HIGH DISK USAGE DETECTED* 🚨
+
+*Instance:* {{ .Labels.instance }}
+*Severity:* {{ .Labels.severity | toUpper }}
+*Disk Usage:* {{ printf "%.2f" .Values.A }}%
+*Mount Point:* {{ .Labels.mountpoint | default "/" }}
+
+⏰ *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+
+⚠️ *Action Required:*
+- Check large files and directories
+- Clean up temporary files and logs
+- Consider expanding disk space
+
+{{ if .CommonAnnotations.image_url }}📊 [Dashboard Image]({{ .CommonAnnotations.image_url }}){{ end }}
+
+#alert #disk #{{ .Labels.severity }}
+{{ end }}
+{{ else }}
+{{ if eq .Labels.alertname "CPU Usage" }}
+✅ *RESOLVED: CPU ALERT* ✅
+
+*CPU USAGE BACK TO NORMAL*
+
+*Instance:* {{ .Labels.instance }}
+*Severity:* {{ .Labels.severity | toUpper }}
+
+✅ *Resolved:* {{ .EndsAt.Format "2006-01-02 15:04:05" }}
+
+#alert #cpu #{{ .Labels.severity }}
+{{ else if eq .Labels.alertname "Memory Usage" }}
+✅ *RESOLVED: MEMORY ALERT* ✅
+
+*MEMORY USAGE BACK TO NORMAL*
+
+*Instance:* {{ .Labels.instance }}
+*Severity:* {{ .Labels.severity | toUpper }}
+
+✅ *Resolved:* {{ .EndsAt.Format "2006-01-02 15:04:05" }}
+
+#alert #memory #{{ .Labels.severity }}
+{{ else if eq .Labels.alertname "Disk Usage" }}
+✅ *RESOLVED: DISK ALERT* ✅
+
+*DISK USAGE BACK TO NORMAL*
+
+*Instance:* {{ .Labels.instance }}
+*Severity:* {{ .Labels.severity | toUpper }}
+*Mount Point:* {{ .Labels.mountpoint | default "/" }}
+
+✅ *Resolved:* {{ .EndsAt.Format "2006-01-02 15:04:05" }}
+
+#alert #disk #{{ .Labels.severity }}
+{{ end }}
+{{ end }}
+{{ end }}
